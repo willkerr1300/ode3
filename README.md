@@ -61,5 +61,5 @@ Energy conservation was verified with air resistance = 0 (energy_conservation.pn
 **Program**: `src/baseball1.cpp`
 
 **Results**:
-Required Initial Velocity: ~48.05 m/s
-Final Height at Plate: 0.90 m
+(xend,z0,theta0) = (18.500000,1.400000,1.000000)
+v_pitch = 48.047501 m/s

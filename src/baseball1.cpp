@@ -84,15 +84,6 @@ double f_vz(double t, const vector<double> &y, void *params) {
 }
 
 double f_stop(double t, const vector<double> &y, void *params) {
-    // Stop when x >= 18.5 (approximate, hardcoded for now based on problem)
-    // Ideally pass target x in params, but struct is fixed-ish?
-    // We can add to struct if needed, but let's assume 18.5 is the target.
-    // Actually, let's use the global or passed xend if possible.
-    // Since f_stop signature is fixed, we can't easily pass xend unless we add it to Params.
-    // Let's assume 18.5 for the stop condition or check if we can access it.
-    // For safety, let's just stop if x > 20 to avoid infinite loops, 
-    // but the solver will stop at xmax anyway.
-    // Better: stop when x >= 18.5
     if (y[0] >= 18.5) return 1;
     return 0;
 }
@@ -103,11 +94,8 @@ int main(int argc, char **argv){
   Params pars;
   pars.g=9.81;
   pars.m=0.145;    
-  pars.d=0.075;   // 7.5 cm = 0.075 m
+  pars.d=0.075;
   
-  // Calculate b and c based on d
-  // b = 1.6e-4 * d
-  // c = 0.25 * d^2
   pars.b = 1.6e-4 * pars.d;
   pars.c = 0.25 * pars.d * pars.d;
   
@@ -172,26 +160,16 @@ int main(int argc, char **argv){
       y0[4] = z0;
       y0[5] = v_guess * sin(rad);
       
-      // Run solver
-      // Use RK4SolveNA for adaptive step
-      // t range: 0 to 2.0 sec should be enough
-      auto tg = RK4SolveNA(v_fun, y0, 100, 0, 2.0, p_par, f_stop, 1e-6);
+      // Run solver - FIXED: use t0 variable instead of literal 0
+      double t0 = 0.0;
+      auto tg = RK4SolveNA(v_fun, y0, 100, t0, 2.0, p_par, f_stop, 1e-6);
       
       // Get final state
-      // The last point in the graph might not be exactly at x=18.5 due to step size,
-      // but f_stop should trigger close to it.
-      // We need to extract the final z value.
-      // tg[4] is z vs t. tg[0] is x vs t.
-      // We want z at x=18.5.
-      // Let's look at the last point.
       int n = tg[0].GetN();
       double t_final, x_final, z_final;
       tg[0].GetPoint(n-1, t_final, x_final);
       tg[4].GetPoint(n-1, t_final, z_final);
       
-      // Simple linear interpolation if needed, but adaptive solver with f_stop should be close.
-      // If x_final is slightly past 18.5, we can interpolate.
-      // But for now, just use the final point.
       
       return z_final - target_z;
   };
@@ -233,7 +211,9 @@ int main(int argc, char **argv){
     y0[4] = z0;
     y0[5] = vPitch * sin(rad);
     
-    auto tg = RK4SolveNA(v_fun, y0, 100, 0, 2.0, p_par, f_stop, 1e-6);
+    // FIXED: use t0 variable instead of literal 0
+    double t0 = 0.0;
+    auto tg = RK4SolveNA(v_fun, y0, 100, t0, 2.0, p_par, f_stop, 1e-6);
     
     TCanvas *c1 = new TCanvas("c1","Baseball Trajectory", 800, 600);
     c1->Divide(1,2);
@@ -242,8 +222,7 @@ int main(int argc, char **argv){
     tg[4].Draw("AL");
     
     c1->cd(2);
-    // Plot z vs x?
-    // We have z(t) and x(t). Construct graph z(x).
+    // Plot z vs x
     TGraph *gr_zx = new TGraph(tg[0].GetN(), tg[0].GetY(), tg[4].GetY());
     gr_zx->SetTitle("z vs x;x [m];z [m]");
     gr_zx->Draw("AL");
@@ -255,4 +234,3 @@ int main(int argc, char **argv){
   
   return 0;
 }
-

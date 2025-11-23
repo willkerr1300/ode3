@@ -2,7 +2,7 @@
 # to build your own program, add the EXE name in the EXES list below
 # then include a target section following the example of one of the
 # other programs below
-
+ODELIB = ../odelib
 ROOTCFLAGS = $(shell root-config --cflags)
 ROOTLIBS   = $(shell root-config --libs)
 ROOTGLIBS  = $(shell root-config --glibs)
